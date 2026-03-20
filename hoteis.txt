@@ -1,0 +1,2 @@
+1	hotel1	bage	50	19	500.00
+2	hotel2	bage	50	20	700.00

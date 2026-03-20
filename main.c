@@ -20,7 +20,7 @@ typedef struct {
 // GLOBAL VARIABLES
 FILE *arquivo_hoteis;
 FILE *arquivo_reservas;
-Hotel hotel;
+Hotel hotel, vet_hoteis[100];
 Reserva reserva;
 
 
@@ -68,46 +68,15 @@ void cadastra_hotel() {
 	
 	printf("Hotel %s cadastrado!\n", hotel.nome);
 }
-
-void mostra_hotel() {
-    Hotel tempH;
-
-    arquivo_hoteis = fopen("hoteis.txt", "r");
-	if(arquivo_hoteis == NULL) {
-		printf("Erro no arquivo!");
-		return;
-	}
-    printf("\n");
-    while(fscanf(arquivo_hoteis, "%i", &tempH.codigo) == 1 &&
-    fscanf(arquivo_hoteis, "%s", tempH.nome) == 1 &&
-    fscanf(arquivo_hoteis, "%s", tempH.cidade) == 1 &&
-    fscanf(arquivo_hoteis, "%i", &tempH.quartosTotais) == 1 &&
-    fscanf(arquivo_hoteis, "%i", &tempH.quartosDisponiveis) == 1 &&
-    fscanf(arquivo_hoteis, "%f", &tempH.diaria) == 1) {
-        printf("%i\t %s\t %s\t %i\t R$%.2f\n",
-        tempH.codigo,
-        tempH.nome,
-        tempH.cidade,
-        tempH.quartosDisponiveis,
-        tempH.diaria);
-	}
-	fclose(arquivo_hoteis);
-}
-
-void reserva_quarto() {
-    Hotel vet_hoteis[100];
-    int nHoteis = 0;
+int vet_hotel() {
     char linha[256];
-    
-    char nomeCliente[100];
-    char dataReserva[12];
-    int codigo, i, encontrado = -1;
+    int nHoteis = 0;
     
     // Carrega todos os hotéis para a memória
     arquivo_hoteis = fopen("hoteis.txt", "r");
 	if(arquivo_hoteis == NULL) {
 		printf("Erro no arquivo!");
-		return;
+		return 0;
 	}
     while (fgets(linha, sizeof(linha), arquivo_hoteis)) {
         sscanf(linha, "%i%s%s%i%i%f",
@@ -120,7 +89,144 @@ void reserva_quarto() {
         nHoteis++;
     }
     fclose(arquivo_hoteis);
+    return nHoteis;
+}
 
+void lista_hotel() {
+	int nHoteis = vet_hotel();
+	
+	printf("%-6s | %-25s | %-20s | %s | %s | %s\n","ID","NOME",
+	"CIDADE","QUANTIDADE DE QUARTOS","QUARTOS DISPONIVEIS","VALOR DA DIARIA");
+    printf("-----------------------------------------------------------------\n");
+    
+	for (int i = 0; i < nHoteis; i++) {
+        printf("%-6i | %-25s | %-20s | %-20i | %-20i | R$%-20.2f\n",
+            vet_hoteis[i].codigo,
+            vet_hoteis[i].nome,
+            vet_hoteis[i].cidade,
+            vet_hoteis[i].quartosTotais,
+            vet_hoteis[i].quartosDisponiveis,
+            vet_hoteis[i].diaria);
+	}
+}
+void busca_nome() {
+    char nome[100];
+    int i, encontrado = -1, nHoteis = vet_hotel();
+    
+    printf("Insira o nome do hotel: ");
+    gets(nome);
+    
+    for (i = 0; i < nHoteis; i++) {
+        if ((strcmp(vet_hoteis[i].nome, nome)) == 0) {
+            encontrado = i;
+            
+            printf("%i\t %s\t %s\t %i\t %i\t R$%.2f\n",
+                vet_hoteis[i].codigo,
+                vet_hoteis[i].nome,
+                vet_hoteis[i].cidade,
+                vet_hoteis[i].quartosTotais,
+                vet_hoteis[i].quartosDisponiveis,
+                vet_hoteis[i].diaria);
+        }
+    }
+    if (encontrado == -1) {
+        printf("Hotel nao encontrado.\n");
+        return;
+    }
+}
+void busca_cidade() {
+    char cidade[100];
+    int i, encontrado = -1, nHoteis = vet_hotel();
+    
+    printf("Insira a cidade de destino: ");
+    gets(cidade);
+    
+    for (i = 0; i < nHoteis; i++) {
+        if ((strcmp(vet_hoteis[i].cidade, cidade)) == 0) {
+            encontrado = i;
+            
+            printf("%i\t %s\t %s\t %i\t %i\t R$%.2f\n",
+                vet_hoteis[i].codigo,
+                vet_hoteis[i].nome,
+                vet_hoteis[i].cidade,
+                vet_hoteis[i].quartosTotais,
+                vet_hoteis[i].quartosDisponiveis,
+                vet_hoteis[i].diaria);
+        }
+    }
+    if (encontrado == -1) {
+        printf("Hotel nao encontrado.\n");
+        return;
+    }
+}
+void busca_preco() {
+    float preco1, preco2;
+    int i, encontrado = -1, nHoteis = vet_hotel();
+    
+    printf("Insira o maior preco: ");
+    scanf("%f", &preco1);
+    printf("Insira o menor preco: ");
+    scanf("%f", &preco2);
+    while(getchar() != '\n');
+    
+    for (i = 0; i < nHoteis; i++) {
+        if (vet_hoteis[i].diaria <= preco1 && vet_hoteis[i].diaria >= preco2) {
+            encontrado = i;
+            
+            printf("%i\t %s\t %s\t %i\t %i\t R$%.2f\n",
+                vet_hoteis[i].codigo,
+                vet_hoteis[i].nome,
+                vet_hoteis[i].cidade,
+                vet_hoteis[i].quartosTotais,
+                vet_hoteis[i].quartosDisponiveis,
+                vet_hoteis[i].diaria);
+        }
+    }
+    if (encontrado == -1) {
+        printf("Nenhum hotel nessa faixa de preco\n");
+        return;
+    }
+}
+void busca() {
+    int menu;
+    
+    do {
+        printf("\nMENU\n");
+        printf("1 - Listar todos hoteis\n");
+        printf("2 - Buscar hotel por nome\n");
+        printf("3 - Buscar hotel cidade\n");
+        printf("4 - Buscar hotel por faixa de preco\n");
+        printf("0 - Sair\n");
+        printf("Escolha uma opcao: ");
+        scanf("%d", &menu);
+        while(getchar() != '\n');
+        
+        switch (menu) {
+            case 1:
+                lista_hotel();
+                break;
+            case 2:
+                busca_nome();
+                break;
+            case 3:
+                busca_cidade();
+                break;
+            case 4:
+                busca_preco();
+                break;
+            case 0:
+                break;
+            default:
+                printf("Opcao invalida!\n");
+        }
+    } while (menu != 0);
+}
+
+void reserva_quarto() {
+    char nomeCliente[100];
+    char dataReserva[12];
+    int codigo, i, encontrado = -1, nHoteis = vet_hotel();
+    
     // Solicita dados
     printf("\n");
     printf("Insira seu nome: ");
@@ -133,7 +239,7 @@ void reserva_quarto() {
     scanf("%d", &codigo);
     while(getchar() != '\n');
 
-    // Verifica existência e disponibilidade e reserva
+    // Verifica existência e disponibilidade e realiza reserva
     for (i = 0; i < nHoteis; i++) {
         if (vet_hoteis[i].codigo == codigo) {
             encontrado = i;
@@ -152,10 +258,11 @@ void reserva_quarto() {
 
     // Reescreve arquivo hoteis.txt
     arquivo_hoteis = fopen("hoteis.txt", "w");
-    if(arquivo_reservas == NULL) {
+    if(arquivo_hoteis == NULL) {
 		printf("Erro no arquivo!");
 		return;
     }
+
     for (i = 0; i < nHoteis; i++) {
         fprintf(arquivo_hoteis, "%d\t%s\t%s\t%d\t%d\t%.2f\n",
                 vet_hoteis[i].codigo,
@@ -184,12 +291,30 @@ void reserva_quarto() {
     printf("Reserva efetuada para %s em %s!\n", nomeCliente,dataReserva);
 }
 
+void relatorio_hotel() {
+    int nHoteis = vet_hotel();
+
+    printf("%-6s | %-25s | %-20s | %-12s\n", "ID", "NOME", "CIDADE", "STATUS");
+    printf("-----------------------------------------------------------------\n");
+    
+	for (int i = 0; i < nHoteis; i++) {
+        printf("%-6i | %-25s | %-20s | ",
+            vet_hoteis[i].codigo,
+            vet_hoteis[i].nome,
+            vet_hoteis[i].cidade);
+        if (quartosDisponiveis == 0) {
+            printf("Lotado\n");
+        } else {
+            printf("Disponivel\n");
+        }
+	}
+}
 long converte_data(char *data) {
     int dia, mes, ano;
     sscanf(data, "%d/%d/%d", &dia, &mes, &ano);
     return (ano * 10000) + (mes * 100) + dia;
 }
-void gera_relatorio() {
+void relatorio_reserva() {
     Reserva lista[100];
     char linha[256];
     int contador = 0;
@@ -227,14 +352,43 @@ void gera_relatorio() {
     }
 
     // Exibe Relatório
-    printf("\n--- Relatorio de Reservas (Ordenado por Data) ---\n");
-    printf("%-20s | %-12s | %-20s | %-10s\n", "CLIENTE", "DATA", "HOTEL", "VALOR");
+    printf("\nTotal de reservas: %d\n", contador);
+    printf("%-20s | %-12s | %-25s | %-10s\n", "CLIENTE", "DATA", "HOTEL", "VALOR");
     printf("----------------------------------------------------------------------\n");
     for (int i = 0; i < contador; i++) {
-        printf("%-20s | %-12s | %-20s | R$ %.2f\n", 
-               lista[i].cliente, lista[i].dataReserva, lista[i].nomeHotel, lista[i].valorDiaria);
+        printf("%-20s | %-12s | %-25s | R$ %-10.2f\n", 
+           lista[i].cliente,
+           lista[i].dataReserva,
+           lista[i].nomeHotel,
+           lista[i].valorDiaria);
     }
-    printf("\nTotal de reservas listadas: %d\n", contador);
+    
+}
+void relatorios() {
+    int menu;
+    
+    do {
+        printf("\nMENU\n");
+        printf("1 - Relatorio de hoteis\n");
+        printf("2 - Relatorio de reservas\n");
+        printf("0 - Sair\n");
+        printf("Escolha uma opcao: ");
+        scanf("%d", &menu);
+        while(getchar() != '\n');
+        
+        switch (menu) {
+            case 1:
+                relatorio_hotel();
+                break;
+            case 2:
+                relatorio_reserva();
+                break;
+            case 0:
+                break;
+            default:
+                printf("Opcao invalida!\n");
+        }
+    } while (menu != 0);
 }
 
 
@@ -245,9 +399,9 @@ int main() {
     do {
         printf("\nMENU\n");
         printf("1 - Cadastrar Hotel\n");
-        printf("2 - Listar Hoteis\n");
+        printf("2 - Busca Hoteis\n");
         printf("3 - Reservar Quarto\n");
-        printf("4 - Gerar Relatorio de Reservas\n");
+        printf("4 - Gerar Relatorios \n");
         printf("0 - Sair\n");
         printf("Escolha uma opcao: ");
         scanf("%d", &menu);
@@ -258,13 +412,13 @@ int main() {
                 cadastra_hotel();
                 break;
             case 2:
-                mostra_hotel();
+                busca();
                 break;
             case 3:
                 reserva_quarto();
                 break;
             case 4:
-                gera_relatorio();
+                relatorios();
                 break;
             case 0:
                 printf("Sistema encerrado\n");
